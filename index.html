@@ -1,440 +1,423 @@
-
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>KhunCare — ข้อมูลอาการ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font-sans); background: var(--color-background-tertiary); }
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Sarabun',system-ui,sans-serif;background:#f0f4f8;color:#1a2e44;-webkit-tap-highlight-color:transparent}
 
-.phone { max-width: 380px; margin: 0 auto; background: var(--color-background-primary); min-height: 100vh; }
+/* ── Layout ── */
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:#f0f4f8;display:flex;flex-direction:column}
 
-.top-bar {
-  background: #06C755;
-  padding: 14px 16px 12px;
-  display: flex; align-items: center; gap: 10px;
-}
-.top-bar .avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: rgba(255,255,255,0.3);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; color: #fff; font-weight: 500;
-}
-.top-bar .title { color: #fff; font-size: 15px; font-weight: 500; }
-.top-bar .sub { color: rgba(255,255,255,0.8); font-size: 12px; }
+/* ── Top bar ── */
+.topbar{background:#06C755;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.topbar-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.topbar-info .name{color:#fff;font-size:15px;font-weight:600;line-height:1.2}
+.topbar-info .sub{color:rgba(255,255,255,.8);font-size:12px}
 
-.chat-area { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+/* ── Progress pips ── */
+.pips{display:flex;gap:5px;padding:12px 16px 0}
+.pip{flex:1;height:4px;border-radius:2px;background:#d1e7f7;transition:background .3s}
+.pip.active{background:#06C755}
+.pip.done{background:#06C755;opacity:.4}
 
-.bubble-bot {
-  background: var(--color-background-secondary);
-  border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) var(--border-radius-lg);
-  padding: 12px 14px;
-  font-size: 14px;
-  color: var(--color-text-primary);
-  line-height: 1.6;
-  max-width: 88%;
-  border: 0.5px solid var(--color-border-tertiary);
-}
-.bubble-user {
-  background: #06C755;
-  border-radius: var(--border-radius-lg) 0 var(--border-radius-lg) var(--border-radius-lg);
-  padding: 12px 14px;
-  font-size: 14px;
-  color: #fff;
-  max-width: 75%;
-  align-self: flex-end;
-  line-height: 1.6;
-}
+/* ── Scroll area ── */
+.scroll{flex:1;overflow-y:auto;padding:12px 16px 120px}
 
-.card {
-  background: var(--color-background-primary);
-  border: 0.5px solid var(--color-border-tertiary);
-  border-radius: var(--border-radius-lg);
-  padding: 16px;
-  display: flex; flex-direction: column; gap: 14px;
-}
+/* ── Bot bubble ── */
+.bot-bubble{background:#fff;border-radius:4px 16px 16px 16px;padding:12px 14px;font-size:14px;line-height:1.65;max-width:88%;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:14px}
 
-.step-label {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  display: flex; align-items: center; gap: 6px;
-}
-.step-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #06C755;
-}
+/* ── Card ── */
+.card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,.07)}
 
-.section-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-text-primary);
-  line-height: 1.5;
-}
+/* ── Page switching ── */
+.page{display:none;flex-direction:column;gap:14px}
+.page.active{display:flex}
 
-.chip-grid {
-  display: flex; flex-wrap: wrap; gap: 8px;
-}
-.chip {
-  padding: 7px 12px;
-  border-radius: 20px;
-  border: 0.5px solid var(--color-border-secondary);
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all 0.15s;
-  background: var(--color-background-primary);
-  user-select: none;
-}
-.chip.selected {
-  background: #E8F9ED;
-  border-color: #06C755;
-  color: #038A3A;
-  font-weight: 500;
-}
-.chip.danger.selected {
-  background: #FCEBEB;
-  border-color: #E24B4A;
-  color: #A32D2D;
-}
+.step-label{font-size:11px;font-weight:600;color:#06C755;text-transform:uppercase;letter-spacing:.06em}
+.q-title{font-size:15px;font-weight:600;color:#1a2e44;line-height:1.5}
+.q-sub{font-size:12px;color:#6b7c93;margin-top:-6px}
 
-.radio-group { display: flex; flex-direction: column; gap: 8px; }
-.radio-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--border-radius-md);
-  border: 0.5px solid var(--color-border-tertiary);
-  cursor: pointer;
-  transition: all 0.15s;
-  font-size: 13px;
-  color: var(--color-text-primary);
-}
-.radio-item.selected {
-  background: #E8F9ED;
-  border-color: #06C755;
-}
-.radio-circle {
-  width: 18px; height: 18px; border-radius: 50%;
-  border: 1.5px solid var(--color-border-secondary);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.15s;
-}
-.radio-item.selected .radio-circle {
-  border-color: #06C755;
-  background: #06C755;
-}
-.radio-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: #fff;
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-.radio-item.selected .radio-dot { opacity: 1; }
+/* ── Chips ── */
+.chip-grid{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 14px;border-radius:20px;border:1.5px solid #d0dae6;font-size:13px;color:#4a5568;background:#f7fafc;cursor:pointer;transition:all .15s;user-select:none;-webkit-user-select:none}
+.chip.selected{border-color:#06C755;background:#e8f9ed;color:#027a30;font-weight:600}
+.chip.danger{border-color:#fca5a5;background:#fff5f5;color:#991b1b}
+.chip.danger.selected{border-color:#dc2626;background:#fee2e2;color:#7f1d1d}
+.chip.full{width:100%;text-align:center}
 
-.slider-wrap { display: flex; flex-direction: column; gap: 8px; }
-.slider-row { display: flex; align-items: center; gap: 10px; }
-.slider-val {
-  font-size: 22px; font-weight: 500;
-  color: var(--color-text-primary);
-  min-width: 28px; text-align: center;
-}
-.slider-labels {
-  display: flex; justify-content: space-between;
-  font-size: 11px; color: var(--color-text-secondary);
-}
-input[type=range] { flex: 1; accent-color: #06C755; }
+/* ── Radio list ── */
+.radio-list{display:flex;flex-direction:column;gap:8px}
+.radio-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;border:1.5px solid #d0dae6;background:#f7fafc;cursor:pointer;transition:all .15s;font-size:14px;color:#2d3748}
+.radio-item.selected{border-color:#06C755;background:#e8f9ed;color:#027a30;font-weight:600}
+.radio-dot{width:18px;height:18px;border-radius:50%;border:2px solid #b0bec5;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.radio-item.selected .radio-dot{border-color:#06C755;background:#06C755}
+.radio-dot::after{content:'';width:7px;height:7px;border-radius:50%;background:#fff;opacity:0;transition:opacity .15s}
+.radio-item.selected .radio-dot::after{opacity:1}
 
-.submit-btn {
-  background: #06C755;
-  color: #fff;
-  border: none;
-  border-radius: var(--border-radius-md);
-  padding: 13px;
-  font-size: 14px; font-weight: 500;
-  width: 100%;
-  cursor: pointer;
-  transition: opacity 0.15s;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-}
-.submit-btn:hover { opacity: 0.9; }
-.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+/* ── Slider ── */
+.slider-wrap{display:flex;flex-direction:column;gap:10px}
+.slider-row{display:flex;align-items:center;gap:10px}
+input[type=range]{flex:1;height:6px;accent-color:#06C755;cursor:pointer}
+.slider-num{font-size:26px;font-weight:700;color:#1a2e44;min-width:36px;text-align:center}
+.slider-labels{display:flex;justify-content:space-between;font-size:12px;color:#6b7c93}
+.severity-badge{text-align:center;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-top:4px;display:inline-block;align-self:center}
 
-.progress-bar {
-  height: 3px;
-  background: var(--color-border-tertiary);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: #06C755;
-  border-radius: 2px;
-  transition: width 0.4s ease;
-}
+/* ── Red flag alert ── */
+.rf-alert{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:14px;padding:14px;display:none;flex-direction:column;gap:10px}
+.rf-alert.show{display:flex}
+.rf-title{font-size:14px;font-weight:700;color:#991b1b;display:flex;align-items:center;gap:6px}
+.rf-body{font-size:13px;color:#7f1d1d;line-height:1.55}
+.call-btn{background:#dc2626;color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;width:100%;letter-spacing:.02em}
 
-.none-chip {
-  width: 100%;
-  text-align: center;
-  padding: 9px;
-  margin-top: 2px;
-}
+/* ── Buttons ── */
+.btn-next{background:#06C755;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;width:100%;cursor:pointer;transition:opacity .2s;letter-spacing:.02em}
+.btn-next:disabled{opacity:.35;cursor:not-allowed}
+.btn-next.red{background:#dc2626}
 
-.red-flag-alert {
-  background: #FCEBEB;
-  border: 1px solid #E24B4A;
-  border-radius: var(--border-radius-lg);
-  padding: 14px;
-  display: none; flex-direction: column; gap: 8px;
-}
-.red-flag-alert.show { display: flex; }
-.alert-title {
-  font-size: 14px; font-weight: 500; color: #A32D2D;
-  display: flex; align-items: center; gap: 6px;
-}
-.alert-body { font-size: 13px; color: #791F1F; line-height: 1.5; }
-.call-btn {
-  background: #E24B4A; color: #fff;
-  border: none; border-radius: var(--border-radius-md);
-  padding: 10px; font-size: 14px; font-weight: 500;
-  cursor: pointer; width: 100%;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-}
-
-.steps { display: flex; gap: 4px; padding: 0 16px 12px; }
-.step-pip {
-  flex: 1; height: 3px; border-radius: 2px;
-  background: var(--color-border-tertiary);
-  transition: background 0.3s;
-}
-.step-pip.done { background: #06C755; }
-.step-pip.active { background: #06C755; opacity: 0.5; }
-  
-const LIFF_ID     = '2010324907-i1YNmYe0';  // ← LIFF ID จาก LINE
-const N8N_WEBHOOK = 'https://artggame.app.n8n.cloud/webhook-test/khuncare-liff-submit'; // ← URL n8n
-  
-.page { display: none; flex-direction: column; gap: 14px; }
-.page.active { display: flex; }
+/* ── Success overlay ── */
+.overlay{position:fixed;inset:0;background:rgba(255,255,255,.97);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:100;text-align:center;padding:32px}
+.overlay.show{display:flex}
+.overlay .icon{font-size:64px}
+.overlay h2{font-size:22px;font-weight:700;color:#027a30}
+.overlay p{font-size:14px;color:#4a5568;line-height:1.6}
 </style>
+</head>
+<body>
+<div class="app">
 
-<h2 class="sr-only">แบบฟอร์มซักถามอาการเบื้องต้น สำหรับ LINE LIFF</h2>
-
-<div class="phone">
-  <div class="top-bar">
-    <div class="avatar">M</div>
-    <div>
-      <div class="title">MedAssist</div>
-      <div class="sub">ผู้ช่วยซักถามอาการ</div>
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-avatar">🏥</div>
+    <div class="topbar-info">
+      <div class="name">KhunCare</div>
+      <div class="sub">ผู้ช่วยสุขภาพ AI</div>
     </div>
   </div>
 
-  <div class="chat-area">
-    <div class="bubble-bot">สวัสดีครับ ขอซักถามอาการเล็กน้อยเพื่อช่วยจัดลำดับการดูแล ใช้เวลาประมาณ 1-2 นาทีครับ</div>
+  <!-- Progress pips -->
+  <div class="pips">
+    <div class="pip active" id="pip0"></div>
+    <div class="pip" id="pip1"></div>
+    <div class="pip" id="pip2"></div>
+    <div class="pip" id="pip3"></div>
+    <div class="pip" id="pip4"></div>
+  </div>
 
-    <div style="display:flex; flex-direction:column; gap:4px;">
-      <div class="steps" id="steps">
-        <div class="step-pip active" id="pip0"></div>
-        <div class="step-pip" id="pip1"></div>
-        <div class="step-pip" id="pip2"></div>
-        <div class="step-pip" id="pip3"></div>
-        <div class="step-pip" id="pip4"></div>
-      </div>
+  <!-- Scroll area -->
+  <div class="scroll">
 
+    <!-- ══ PAGE 0: Red Flag ══ -->
+    <div class="page active" id="page0">
+      <div class="bot-bubble">สวัสดีค่ะ 😊<br>ขอถามอาการเล็กน้อยเพื่อช่วยจัดสรรการดูแลที่เหมาะสมนะคะ<br>ใช้เวลาประมาณ 1–2 นาทีค่ะ</div>
       <div class="card">
-
-        <!-- Page 0: Red Flag -->
-        <div class="page active" id="page0">
-          <div class="step-label"><span class="step-dot"></span>ขั้นตอนที่ 1 จาก 5</div>
-          <div class="section-title">มีอาการใดต่อไปนี้หรือไม่? <span style="color:var(--color-text-secondary); font-weight:400;">(เลือกได้มากกว่า 1 ข้อ)</span></div>
-          <div class="chip-grid" id="red-flag-chips">
-            <div class="chip danger" data-val="เจ็บหน้าอกรุนแรง" onclick="toggleChip(this,'red')">เจ็บหน้าอกรุนแรง</div>
-            <div class="chip danger" data-val="หายใจลำบาก" onclick="toggleChip(this,'red')">หายใจลำบาก</div>
-            <div class="chip danger" data-val="หมดสติ/เกือบหมดสติ" onclick="toggleChip(this,'red')">หมดสติ/เกือบหมดสติ</div>
-            <div class="chip danger" data-val="ซึมลง/สับสน" onclick="toggleChip(this,'red')">ซึมลง/สับสน</div>
-            <div class="chip danger" data-val="แขน/ขาอ่อนแรงเฉียบพลัน" onclick="toggleChip(this,'red')">แขน/ขาอ่อนแรงเฉียบพลัน</div>
-            <div class="chip danger" data-val="พูดลำบาก" onclick="toggleChip(this,'red')">พูดลำบาก</div>
-            <div class="chip danger" data-val="ตามัวเฉียบพลัน" onclick="toggleChip(this,'red')">ตามัวเฉียบพลัน</div>
-            <div class="chip danger" data-val="ชัก" onclick="toggleChip(this,'red')">ชัก</div>
-            <div class="chip danger" data-val="ปวดหัวรุนแรงผิดปกติ" onclick="toggleChip(this,'red')">ปวดหัวรุนแรงผิดปกติ</div>
-            <div class="chip danger" data-val="คอ/ปากบวม" onclick="toggleChip(this,'red')">คอ/ปากบวม</div>
-            <div class="chip danger" data-val="เลือดออกมาก" onclick="toggleChip(this,'red')">เลือดออกมาก</div>
-            <div class="chip none-chip" data-val="none" onclick="toggleChip(this,'none')">ไม่มีอาการข้างต้น</div>
-          </div>
-          <div class="red-flag-alert" id="red-flag-alert">
-            <div class="alert-title"><i class="ti ti-alert-triangle" aria-hidden="true"></i> พบอาการฉุกเฉิน</div>
-            <div class="alert-body">อาการที่คุณแจ้งต้องการความช่วยเหลือทันที กรุณาโทรหรือไปห้องฉุกเฉินทันที</div>
-            <button class="call-btn" onclick="window.open('tel:1669')"><i class="ti ti-phone" aria-hidden="true"></i> โทร 1669 ทันที</button>
-          </div>
-          <button class="submit-btn" id="btn0" onclick="goNext(0)" disabled>ถัดไป <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+        <div class="step-label">ขั้นตอนที่ 1 จาก 5</div>
+        <div class="q-title">มีอาการใดต่อไปนี้หรือไม่?</div>
+        <div class="q-sub">เลือกได้มากกว่า 1 ข้อ</div>
+        <div class="chip-grid" id="rf-chips">
+          <div class="chip danger" data-val="เจ็บหน้าอกรุนแรง" onclick="toggleRF(this)">เจ็บหน้าอกรุนแรง</div>
+          <div class="chip danger" data-val="หายใจลำบาก/หอบเหนื่อย" onclick="toggleRF(this)">หายใจลำบาก/หอบเหนื่อย</div>
+          <div class="chip danger" data-val="หมดสติ/เกือบหมดสติ" onclick="toggleRF(this)">หมดสติ/เกือบหมดสติ</div>
+          <div class="chip danger" data-val="ซึมลง/สับสน" onclick="toggleRF(this)">ซึมลง/สับสน</div>
+          <div class="chip danger" data-val="แขน/ขาอ่อนแรงเฉียบพลัน" onclick="toggleRF(this)">แขน/ขาอ่อนแรงเฉียบพลัน</div>
+          <div class="chip danger" data-val="พูดไม่ชัด/พูดลำบาก" onclick="toggleRF(this)">พูดไม่ชัด/พูดลำบาก</div>
+          <div class="chip danger" data-val="ตามัวเฉียบพลัน" onclick="toggleRF(this)">ตามัวเฉียบพลัน</div>
+          <div class="chip danger" data-val="ชัก" onclick="toggleRF(this)">ชัก</div>
+          <div class="chip danger" data-val="ปวดหัวรุนแรงผิดปกติ" onclick="toggleRF(this)">ปวดหัวรุนแรงผิดปกติ</div>
+          <div class="chip danger" data-val="คอ/ปาก/ลิ้นบวม" onclick="toggleRF(this)">คอ/ปาก/ลิ้นบวม</div>
+          <div class="chip danger" data-val="เลือดออกมาก" onclick="toggleRF(this)">เลือดออกมาก</div>
+          <div class="chip danger" data-val="อุบัติเหตุรุนแรง/ไฟฟ้าช็อต" onclick="toggleRF(this)">อุบัติเหตุรุนแรง/ไฟฟ้าช็อต</div>
+          <div class="chip danger" data-val="สัมผัสสารเคมี/ควันพิษ" onclick="toggleRF(this)">สัมผัสสารเคมี/ควันพิษ</div>
+          <div class="chip full" data-val="none" onclick="toggleNone(this)">✅ ไม่มีอาการข้างต้น</div>
         </div>
-
-        <!-- Page 1: Main symptom -->
-        <div class="page" id="page1">
-          <div class="step-label"><span class="step-dot"></span>ขั้นตอนที่ 2 จาก 5</div>
-          <div class="section-title">อาการหลักที่รู้สึกตอนนี้คืออะไร?</div>
-          <div class="chip-grid" id="symptom-chips">
-            <div class="chip" data-val="ปวดหัว" onclick="toggleChip(this,'single')">ปวดหัว</div>
-            <div class="chip" data-val="ไข้" onclick="toggleChip(this,'single')">ไข้</div>
-            <div class="chip" data-val="ไอ" onclick="toggleChip(this,'single')">ไอ</div>
-            <div class="chip" data-val="คลื่นไส้/อาเจียน" onclick="toggleChip(this,'single')">คลื่นไส้/อาเจียน</div>
-            <div class="chip" data-val="ปวดท้อง" onclick="toggleChip(this,'single')">ปวดท้อง</div>
-            <div class="chip" data-val="เวียนหัว" onclick="toggleChip(this,'single')">เวียนหัว</div>
-            <div class="chip" data-val="ปวดกล้ามเนื้อ" onclick="toggleChip(this,'single')">ปวดกล้ามเนื้อ</div>
-            <div class="chip" data-val="ผื่นคัน" onclick="toggleChip(this,'single')">ผื่นคัน</div>
-          </div>
-          <button class="submit-btn" id="btn1" onclick="goNext(1)" disabled>ถัดไป <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+        <div class="rf-alert" id="rf-alert">
+          <div class="rf-title">⚠️ พบอาการฉุกเฉิน</div>
+          <div class="rf-body">อาการที่คุณแจ้งต้องการความช่วยเหลือทันที กรุณาโทร 1669 หรือไปห้องฉุกเฉินใกล้บ้านทันทีค่ะ</div>
+          <button class="call-btn" onclick="submitRedFlag()">📞 โทร 1669 ทันที</button>
         </div>
-
-        <!-- Page 2: Duration -->
-        <div class="page" id="page2">
-          <div class="step-label"><span class="step-dot"></span>ขั้นตอนที่ 3 จาก 5</div>
-          <div class="section-title">อาการเป็นมานานเท่าไรแล้ว?</div>
-          <div class="radio-group" id="duration-group">
-            <div class="radio-item" onclick="selectRadio(this,'duration')">
-              <div class="radio-circle"><div class="radio-dot"></div></div>
-              <span>น้อยกว่า 1–3 ชั่วโมง</span>
-            </div>
-            <div class="radio-item" onclick="selectRadio(this,'duration')">
-              <div class="radio-circle"><div class="radio-dot"></div></div>
-              <span>3–6 ชั่วโมง</span>
-            </div>
-            <div class="radio-item selected" onclick="selectRadio(this,'duration')">
-              <div class="radio-circle"><div class="radio-dot"></div></div>
-              <span>6–24 ชั่วโมง</span>
-            </div>
-            <div class="radio-item" onclick="selectRadio(this,'duration')">
-              <div class="radio-circle"><div class="radio-dot"></div></div>
-              <span>1–3 วัน</span>
-            </div>
-            <div class="radio-item" onclick="selectRadio(this,'duration')">
-              <div class="radio-circle"><div class="radio-dot"></div></div>
-              <span>มากกว่า 3 วัน</span>
-            </div>
-          </div>
-          <button class="submit-btn" id="btn2" onclick="goNext(2)">ถัดไป <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
-        </div>
-
-        <!-- Page 3: Severity -->
-        <div class="page" id="page3">
-          <div class="step-label"><span class="step-dot"></span>ขั้นตอนที่ 4 จาก 5</div>
-          <div class="section-title">อาการรุนแรงแค่ไหน?</div>
-          <div class="slider-wrap">
-            <div class="slider-row">
-              <span style="font-size:13px;color:var(--color-text-secondary);">0</span>
-              <input type="range" min="0" max="10" value="5" step="1" id="severity-slider" oninput="updateSlider(this)">
-              <span style="font-size:13px;color:var(--color-text-secondary);">10</span>
-              <span class="slider-val" id="severity-val">5</span>
-            </div>
-            <div class="slider-labels">
-              <span>ไม่รุนแรง</span>
-              <span>รุนแรงมาก</span>
-            </div>
-          </div>
-          <button class="submit-btn" id="btn3" onclick="goNext(3)">ถัดไป <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
-        </div>
-
-        <!-- Page 4: Progression -->
-        <div class="page" id="page4">
-          <div class="step-label"><span class="step-dot"></span>ขั้นตอนที่ 5 จาก 5</div>
-          <div class="section-title">อาการตอนนี้เป็นอย่างไร?</div>
-          <div class="radio-group" id="progression-group">
-            <div class="radio-item" onclick="selectRadio(this,'progression')">
-              <div class="radio-circle"><div class="radio-dot"></div></div>
-              <span>ดีขึ้น</span>
-            </div>
-            <div class="radio-item" onclick="selectRadio(this,'progression')">
-              <div class="radio-circle"><div class="radio-dot"></div></div>
-              <span>คงเดิม</span>
-            </div>
-            <div class="radio-item selected" onclick="selectRadio(this,'progression')">
-              <div class="radio-circle"><div class="radio-dot"></div></div>
-              <span>แย่ลง</span>
-            </div>
-            <div class="radio-item" onclick="selectRadio(this,'progression')">
-              <div class="radio-circle"><div class="radio-dot"></div></div>
-              <span>แย่ลงมาก</span>
-            </div>
-          </div>
-          <button class="submit-btn" id="btn4" onclick="submitForm()"><i class="ti ti-send" aria-hidden="true"></i> ส่งข้อมูล</button>
-        </div>
-
+        <button class="btn-next" id="btn0" onclick="goNext(0)" disabled>ถัดไป →</button>
       </div>
     </div>
-  </div>
+
+    <!-- ══ PAGE 1: อาการหลัก ══ -->
+    <div class="page" id="page1">
+      <div class="bot-bubble">ขอทราบอาการหลักที่รู้สึกอยู่ตอนนี้ค่ะ</div>
+      <div class="card">
+        <div class="step-label">ขั้นตอนที่ 2 จาก 5</div>
+        <div class="q-title">อาการหลักที่รู้สึกตอนนี้คืออะไร?</div>
+        <div class="q-sub">เลือกได้มากกว่า 1 ข้อ</div>
+        <div class="chip-grid" id="sx-chips">
+          <div class="chip" data-val="ปวดหัว" onclick="toggleMulti(this,'sx')">ปวดหัว</div>
+          <div class="chip" data-val="ไข้" onclick="toggleMulti(this,'sx')">ไข้</div>
+          <div class="chip" data-val="ไอ" onclick="toggleMulti(this,'sx')">ไอ</div>
+          <div class="chip" data-val="เจ็บคอ" onclick="toggleMulti(this,'sx')">เจ็บคอ</div>
+          <div class="chip" data-val="คลื่นไส้/อาเจียน" onclick="toggleMulti(this,'sx')">คลื่นไส้/อาเจียน</div>
+          <div class="chip" data-val="ปวดท้อง" onclick="toggleMulti(this,'sx')">ปวดท้อง</div>
+          <div class="chip" data-val="ท้องเสีย" onclick="toggleMulti(this,'sx')">ท้องเสีย</div>
+          <div class="chip" data-val="เวียนหัว" onclick="toggleMulti(this,'sx')">เวียนหัว</div>
+          <div class="chip" data-val="อ่อนเพลีย" onclick="toggleMulti(this,'sx')">อ่อนเพลีย</div>
+          <div class="chip" data-val="ปวดกล้ามเนื้อ" onclick="toggleMulti(this,'sx')">ปวดกล้ามเนื้อ</div>
+          <div class="chip" data-val="ผื่น/คัน" onclick="toggleMulti(this,'sx')">ผื่น/คัน</div>
+          <div class="chip" data-val="ปวดหลัง" onclick="toggleMulti(this,'sx')">ปวดหลัง</div>
+        </div>
+        <button class="btn-next" id="btn1" onclick="goNext(1)" disabled>ถัดไป →</button>
+      </div>
+    </div>
+
+    <!-- ══ PAGE 2: ระยะเวลา ══ -->
+    <div class="page" id="page2">
+      <div class="bot-bubble">อาการนี้เป็นมานานเท่าไรแล้วคะ?</div>
+      <div class="card">
+        <div class="step-label">ขั้นตอนที่ 3 จาก 5</div>
+        <div class="q-title">อาการเป็นมานานแค่ไหน?</div>
+        <div class="radio-list" id="dur-list">
+          <div class="radio-item" data-val="น้อยกว่า 1 ชั่วโมง" onclick="selectRadio(this,'dur')"><div class="radio-dot"></div>น้อยกว่า 1 ชั่วโมง</div>
+          <div class="radio-item" data-val="1–3 ชั่วโมง" onclick="selectRadio(this,'dur')"><div class="radio-dot"></div>1–3 ชั่วโมง</div>
+          <div class="radio-item" data-val="3–6 ชั่วโมง" onclick="selectRadio(this,'dur')"><div class="radio-dot"></div>3–6 ชั่วโมง</div>
+          <div class="radio-item" data-val="6–24 ชั่วโมง" onclick="selectRadio(this,'dur')"><div class="radio-dot"></div>6–24 ชั่วโมง</div>
+          <div class="radio-item" data-val="1–3 วัน" onclick="selectRadio(this,'dur')"><div class="radio-dot"></div>1–3 วัน</div>
+          <div class="radio-item" data-val="มากกว่า 3 วัน" onclick="selectRadio(this,'dur')"><div class="radio-dot"></div>มากกว่า 3 วัน</div>
+        </div>
+        <button class="btn-next" id="btn2" onclick="goNext(2)" disabled>ถัดไป →</button>
+      </div>
+    </div>
+
+    <!-- ══ PAGE 3: ความรุนแรง ══ -->
+    <div class="page" id="page3">
+      <div class="bot-bubble">ให้คะแนนความรุนแรงของอาการหน่อยค่ะ<br>0 = ไม่รุนแรงเลย, 10 = รุนแรงมากที่สุด</div>
+      <div class="card">
+        <div class="step-label">ขั้นตอนที่ 4 จาก 5</div>
+        <div class="q-title">อาการรุนแรงแค่ไหน?</div>
+        <div class="slider-wrap">
+          <div class="slider-row">
+            <span style="font-size:13px;color:#6b7c93">0</span>
+            <input type="range" min="0" max="10" value="5" id="sev-slider" oninput="updateSev(this)"/>
+            <span style="font-size:13px;color:#6b7c93">10</span>
+            <span class="slider-num" id="sev-val">5</span>
+          </div>
+          <div class="slider-labels"><span>ไม่รุนแรง</span><span>รุนแรงมาก</span></div>
+          <div id="sev-badge" class="severity-badge" style="background:#fff3cd;color:#856404">ปานกลาง</div>
+        </div>
+        <button class="btn-next" id="btn3" onclick="goNext(3)">ถัดไป →</button>
+      </div>
+    </div>
+
+    <!-- ══ PAGE 4: การดำเนินโรค ══ -->
+    <div class="page" id="page4">
+      <div class="bot-bubble">เทียบกับตอนเริ่มมีอาการ ตอนนี้เป็นอย่างไรบ้างคะ?</div>
+      <div class="card">
+        <div class="step-label">ขั้นตอนที่ 5 จาก 5</div>
+        <div class="q-title">อาการตอนนี้เป็นอย่างไร?</div>
+        <div class="radio-list" id="prog-list">
+          <div class="radio-item" data-val="ดีขึ้น" onclick="selectRadio(this,'prog')"><div class="radio-dot"></div>📈 ดีขึ้น</div>
+          <div class="radio-item" data-val="คงเดิม" onclick="selectRadio(this,'prog')"><div class="radio-dot"></div>➡️ คงเดิม</div>
+          <div class="radio-item" data-val="แย่ลง" onclick="selectRadio(this,'prog')"><div class="radio-dot"></div>📉 แย่ลง</div>
+          <div class="radio-item" data-val="แย่ลงมาก" onclick="selectRadio(this,'prog')"><div class="radio-dot"></div>⬇️ แย่ลงมาก</div>
+        </div>
+        <button class="btn-next" id="btn4" onclick="goNext(4)" disabled>ถัดไป →</button>
+      </div>
+    </div>
+
+    <!-- ══ PAGE 5: ประวัติโรค ══ -->
+    <div class="page" id="page5">
+      <div class="bot-bubble">สุดท้ายค่ะ ขอทราบประวัติสุขภาพเล็กน้อยนะคะ</div>
+      <div class="card">
+        <div class="step-label">ข้อมูลเพิ่มเติม</div>
+        <div class="q-title">โรคประจำตัว / ยาที่ใช้อยู่</div>
+        <div class="q-sub">เลือกได้มากกว่า 1 ข้อ</div>
+        <div class="chip-grid" id="hist-chips">
+          <div class="chip" data-val="เบาหวาน" onclick="toggleMulti(this,'hist')">🩸 เบาหวาน</div>
+          <div class="chip" data-val="ความดันโลหิตสูง" onclick="toggleMulti(this,'hist')">💊 ความดันสูง</div>
+          <div class="chip" data-val="โรคหัวใจ" onclick="toggleMulti(this,'hist')">❤️ โรคหัวใจ</div>
+          <div class="chip" data-val="โรคไต" onclick="toggleMulti(this,'hist')">🫘 โรคไต</div>
+          <div class="chip" data-val="หอบหืด/โรคปอด" onclick="toggleMulti(this,'hist')">🫁 หอบหืด/ปอด</div>
+          <div class="chip" data-val="โรคตับ" onclick="toggleMulti(this,'hist')">🟤 โรคตับ</div>
+          <div class="chip" data-val="ตั้งครรภ์" onclick="toggleMulti(this,'hist')">🤰 ตั้งครรภ์</div>
+          <div class="chip full" data-val="ไม่มี" onclick="toggleNoneHist(this)">✅ ไม่มีโรคประจำตัว</div>
+        </div>
+        <button class="btn-next" id="btn5" onclick="submitForm()" disabled>📤 ส่งข้อมูล</button>
+      </div>
+    </div>
+
+  </div><!-- /scroll -->
+</div><!-- /app -->
+
+<!-- Success overlay -->
+<div class="overlay" id="overlay-success">
+  <div class="icon">✅</div>
+  <h2>รับข้อมูลเรียบร้อยแล้วค่ะ</h2>
+  <p>กำลังประเมินอาการให้คุณ<br>กรุณากลับไปที่แชท LINE นะคะ 🙏</p>
 </div>
 
 <script>
-var state = { redFlags: [], redFlagTriggered: false, mainSymptom: '', duration: '6–24 ชั่วโมง', severity: 5, progression: 'แย่ลง' };
-var currentPage = 0;
+// ══ CONFIG ══════════════════════════════════════════
+const LIFF_ID      = '2010324907-i1YNmYe0';        // ← ใส่ LIFF ID
+const N8N_WEBHOOK  = 'https://artggame.app.n8n.cloud/webhook-test/khuncare-liff-submit'; // ← ใส่ webhook URL n8n
 
-function toggleChip(el, mode) {
-  if (mode === 'none') {
-    document.querySelectorAll('#red-flag-chips .chip.danger').forEach(c => c.classList.remove('selected'));
-    el.classList.toggle('selected');
-    state.redFlags = el.classList.contains('selected') ? ['none'] : [];
-    state.redFlagTriggered = false;
-    document.getElementById('red-flag-alert').classList.remove('show');
-  } else if (mode === 'red') {
-    document.querySelector('.chip[data-val="none"]') && document.querySelector('.chip[data-val="none"]').classList.remove('selected');
-    el.classList.toggle('selected');
-    var selected = Array.from(document.querySelectorAll('#red-flag-chips .chip.danger.selected')).map(c => c.dataset.val);
-    state.redFlags = selected;
-    state.redFlagTriggered = selected.length > 0;
-    var alert = document.getElementById('red-flag-alert');
-    if (state.redFlagTriggered) { alert.classList.add('show'); } else { alert.classList.remove('show'); }
-  } else if (mode === 'single') {
-    document.querySelectorAll('#symptom-chips .chip').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    state.mainSymptom = el.dataset.val;
+// ══ STATE ═══════════════════════════════════════════
+const S = {
+  userId:    null,
+  sessionId: null,
+  mainSymptoms: [],       // จาก URL param (Gemini วิเคราะห์แล้ว)
+  redFlags:  [],
+  redFlagTriggered: false,
+  associated: [],
+  duration:  null,
+  severity:  5,
+  progression: null,
+  history:   []
+};
+
+// ══ LIFF INIT ════════════════════════════════════════
+(async () => {
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+    const profile  = await liff.getProfile();
+    S.userId       = profile.userId;
+    const p        = new URLSearchParams(window.location.search);
+    S.sessionId    = p.get('session_id') || S.userId;
+    const raw      = p.get('symptoms')   || '';
+    S.mainSymptoms = raw ? decodeURIComponent(raw).split(',').filter(Boolean) : [];
+  } catch(e) {
+    S.userId = 'dev'; S.sessionId = 'dev';
+    console.warn('LIFF dev mode:', e.message);
   }
-  updateButtons();
-}
+})();
 
-function selectRadio(el, group) {
-  var container = document.getElementById(group + '-group');
-  container.querySelectorAll('.radio-item').forEach(r => r.classList.remove('selected'));
-  el.classList.add('selected');
-  if (group === 'duration') state.duration = el.querySelector('span').textContent;
-  if (group === 'progression') state.progression = el.querySelector('span').textContent;
-}
-
-function updateSlider(el) {
-  state.severity = parseInt(el.value);
-  document.getElementById('severity-val').textContent = el.value;
-}
-
-function updateButtons() {
-  var btn0 = document.getElementById('btn0');
-  var hasSelection = state.redFlags.length > 0;
-  btn0.disabled = !hasSelection;
-  if (state.redFlagTriggered) {
-    btn0.style.display = 'none';
-  } else {
-    btn0.style.display = 'flex';
-  }
-  var btn1 = document.getElementById('btn1');
-  btn1.disabled = !state.mainSymptom;
-}
+// ══ NAV ══════════════════════════════════════════════
+const TOTAL = 5; // pip count (0-4), pages 0-5
 
 function goNext(from) {
-  document.getElementById('page' + from).classList.remove('active');
-  document.getElementById('pip' + from).classList.remove('active');
-  document.getElementById('pip' + from).classList.add('done');
-  var next = from + 1;
-  if (next <= 4) {
-    document.getElementById('page' + next).classList.add('active');
-    document.getElementById('pip' + next).classList.add('active');
-    currentPage = next;
-  }
+  document.getElementById('page'+from).classList.remove('active');
+  // pip
+  const pip = document.getElementById('pip'+from);
+  if(pip){ pip.classList.remove('active'); pip.classList.add('done'); }
+  const next = from + 1;
+  const nextPip = document.getElementById('pip'+next);
+  if(nextPip){ nextPip.classList.add('active'); }
+  const nextPage = document.getElementById('page'+next);
+  if(nextPage){ nextPage.classList.add('active'); nextPage.scrollIntoView({behavior:'smooth',block:'start'}); }
 }
 
-function submitForm() {
-  var payload = {
-    main_symptom: state.mainSymptom,
-    red_flags: state.redFlags,
-    red_flag_triggered: state.redFlagTriggered,
-    duration: state.duration,
-    severity: state.severity,
-    progression: state.progression
+// ══ RED FLAG ═════════════════════════════════════════
+function toggleRF(el) {
+  // deselect "none"
+  document.querySelector('.chip.full[data-val="none"]').classList.remove('selected');
+  el.classList.toggle('selected');
+  S.redFlags = [...document.querySelectorAll('#rf-chips .chip.danger.selected')].map(c=>c.dataset.val);
+  S.redFlagTriggered = S.redFlags.length > 0;
+  document.getElementById('rf-alert').classList.toggle('show', S.redFlagTriggered);
+  document.getElementById('btn0').disabled = S.redFlags.length === 0 && !document.querySelector('.chip.full.selected');
+}
+
+function toggleNone(el) {
+  document.querySelectorAll('#rf-chips .chip.danger').forEach(c=>c.classList.remove('selected'));
+  el.classList.toggle('selected');
+  S.redFlags = [];
+  S.redFlagTriggered = false;
+  document.getElementById('rf-alert').classList.remove('show');
+  document.getElementById('btn0').disabled = !el.classList.contains('selected');
+}
+
+// ══ MULTI CHIP ═══════════════════════════════════════
+const multiState = { sx: [], hist: [] };
+
+function toggleMulti(el, group) {
+  el.classList.toggle('selected');
+  const vals = [...document.querySelectorAll('#'+(group==='sx'?'sx':'hist')+'-chips .chip.selected')].map(c=>c.dataset.val);
+  multiState[group] = vals;
+  if(group==='sx')   document.getElementById('btn1').disabled = vals.length === 0;
+  if(group==='hist') document.getElementById('btn5').disabled = vals.length === 0;
+}
+
+function toggleNoneHist(el) {
+  document.querySelectorAll('#hist-chips .chip:not(.full)').forEach(c=>c.classList.remove('selected'));
+  el.classList.toggle('selected');
+  multiState.hist = el.classList.contains('selected') ? ['ไม่มี'] : [];
+  document.getElementById('btn5').disabled = multiState.hist.length === 0;
+}
+
+// ══ RADIO ════════════════════════════════════════════
+const radioState = { dur: null, prog: null };
+
+function selectRadio(el, group) {
+  const list = document.getElementById(group+'-list');
+  list.querySelectorAll('.radio-item').forEach(r=>r.classList.remove('selected'));
+  el.classList.add('selected');
+  radioState[group] = el.dataset.val;
+  if(group==='dur')  document.getElementById('btn2').disabled = false;
+  if(group==='prog') document.getElementById('btn4').disabled = false;
+}
+
+// ══ SLIDER ════════════════════════════════════════════
+const SEV_LABELS = ['ไม่มีอาการ','เล็กน้อยมาก','เล็กน้อย','เล็กน้อย-ปานกลาง','ปานกลาง','ปานกลาง','ปานกลาง-รุนแรง','รุนแรง','รุนแรง','รุนแรงมาก','รุนแรงที่สุด'];
+const SEV_COLORS = [
+  ['#d1fae5','#065f46'],['#d1fae5','#065f46'],['#d1fae5','#065f46'],
+  ['#fef3c7','#92400e'],['#fef3c7','#92400e'],['#fef3c7','#92400e'],
+  ['#fee2e2','#991b1b'],['#fee2e2','#991b1b'],['#fee2e2','#991b1b'],
+  ['#fecaca','#7f1d1d'],['#fecaca','#7f1d1d']
+];
+
+function updateSev(el) {
+  const v = parseInt(el.value);
+  S.severity = v;
+  document.getElementById('sev-val').textContent = v;
+  document.getElementById('sev-badge').textContent = SEV_LABELS[v];
+  document.getElementById('sev-badge').style.background = SEV_COLORS[v][0];
+  document.getElementById('sev-badge').style.color = SEV_COLORS[v][1];
+}
+
+// ══ SUBMIT RED FLAG ══════════════════════════════════
+async function submitRedFlag() {
+  const payload = {
+    user_id:    S.userId,
+    session_id: S.sessionId,
+    red_flag_triggered: true,
+    red_flags_detected: S.redFlags,
+    associated_symptoms: null,
+    duration:    null,
+    severity:    null,
+    progression: null,
+    medical_history: null
   };
-  sendPrompt('ส่งข้อมูลอาการ: ' + JSON.stringify(payload));
+  await send(payload);
+}
+
+// ══ SUBMIT NORMAL ════════════════════════════════════
+async function submitForm() {
+  const payload = {
+    user_id:    S.userId,
+    session_id: S.sessionId,
+    main_symptoms:       multiState.sx,
+    red_flag_triggered:  false,
+    red_flags_detected:  null,
+    associated_symptoms: multiState.sx,
+    duration:            radioState.dur,
+    severity:            S.severity,
+    progression:         radioState.prog,
+    medical_history:     multiState.hist.join(', ') || 'ไม่มี'
+  };
+  await send(payload);
+}
+
+// ══ SEND ══════════════════════════════════════════════
+async function send(payload) {
+  try {
+    await fetch(N8N_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) { console.error(e); }
+  document.getElementById('overlay-success').classList.add('show');
+  setTimeout(() => { try { liff.closeWindow(); } catch(e) {} }, 2500);
 }
 </script>
+</body>
+</html>
