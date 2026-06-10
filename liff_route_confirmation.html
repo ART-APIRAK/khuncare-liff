@@ -1,0 +1,186 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.phone{max-width:380px;margin:0 auto;background:var(--color-background-primary);font-family:var(--font-sans)}
+.top-bar{background:#06C755;padding:14px 16px 12px;display:flex;align-items:center;gap:10px}
+.top-bar .av{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:500}
+.top-bar .t{color:#fff;font-size:15px;font-weight:500}
+.top-bar .s{color:rgba(255,255,255,0.8);font-size:12px}
+.body{padding:16px;display:flex;flex-direction:column;gap:12px}
+.result-card{border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:16px;display:flex;flex-direction:column;gap:6px}
+.result-header{display:flex;align-items:center;gap:10px}
+.p-badge{width:48px;height:48px;border-radius:var(--border-radius-md);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.p-badge .num{font-size:20px;font-weight:500;line-height:1}
+.p-badge .lbl{font-size:10px;font-weight:500}
+.result-title{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.result-sub{font-size:13px;color:var(--color-text-secondary);line-height:1.5}
+.symptoms-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.sym-chip{background:var(--color-background-secondary);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.section-label{font-size:11px;font-weight:500;color:var(--color-text-secondary);letter-spacing:0.05em;text-transform:uppercase}
+.route-list{display:flex;flex-direction:column;gap:8px}
+.route-item{border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.15s;background:var(--color-background-primary)}
+.route-item:hover{background:var(--color-background-secondary)}
+.route-item.selected{border:2px solid #06C755;background:#F0FBF4}
+.route-item.selected .route-name{color:#038A3A}
+.route-icon{width:40px;height:40px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;color:var(--color-text-secondary)}
+.route-item.selected .route-icon{background:#E8F9ED;color:#038A3A}
+.route-name{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.route-desc{font-size:12px;color:var(--color-text-secondary);margin-top:2px;line-height:1.4}
+.route-radio{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;margin-left:auto;flex-shrink:0}
+.route-item.selected .route-radio{border-color:#06C755;background:#06C755}
+.radio-dot{width:8px;height:8px;border-radius:50%;background:#fff;opacity:0}
+.route-item.selected .radio-dot{opacity:1}
+.badge-rec{background:#E8F9ED;color:#038A3A;font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;border:0.5px solid #06C755;display:inline-block;margin-bottom:4px}
+.confirm-btn{background:#06C755;color:#fff;border:none;border-radius:var(--border-radius-md);padding:14px;font-size:14px;font-weight:500;width:100%;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity 0.15s}
+.confirm-btn:disabled{opacity:0.35;cursor:not-allowed}
+.confirm-btn:not(:disabled):hover{opacity:0.9}
+.divider{height:0.5px;background:var(--color-border-tertiary)}
+.other-label{font-size:12px;color:var(--color-text-secondary);text-align:center}
+.other-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.other-btn{border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);padding:10px 8px;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--color-background-primary);transition:all 0.15s;font-size:13px;color:var(--color-text-secondary)}
+.other-btn:hover{background:var(--color-background-secondary)}
+.other-btn i{font-size:18px}
+.confirmed-view{display:none;flex-direction:column;gap:14px;align-items:center;padding:24px 0}
+.check-circle{width:64px;height:64px;border-radius:50%;background:#E8F9ED;display:flex;align-items:center;justify-content:center;font-size:32px;color:#06C755}
+.confirmed-title{font-size:17px;font-weight:500;color:var(--color-text-primary)}
+.confirmed-sub{font-size:13px;color:var(--color-text-secondary);text-align:center;line-height:1.6}
+.confirmed-route{background:#E8F9ED;border:0.5px solid #06C755;border-radius:var(--border-radius-lg);padding:12px 16px;display:flex;align-items:center;gap:10px;width:100%}
+.confirmed-route-name{font-size:14px;font-weight:500;color:#038A3A}
+.next-btn{background:var(--color-background-secondary);color:var(--color-text-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:12px;font-size:14px;width:100%;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity 0.15s}
+</style>
+
+<h2 class="sr-only">หน้ายืนยันเส้นทางการดูแล Route Confirmation</h2>
+
+<div class="phone">
+  <div class="top-bar">
+    <div class="av">M</div>
+    <div>
+      <div class="t">MedAssist</div>
+      <div class="s">ยืนยันเส้นทางการดูแล</div>
+    </div>
+  </div>
+
+  <div class="body" id="main-view">
+    <div class="result-card">
+      <div class="result-header">
+        <div class="p-badge" style="background:#FFF3CD;color:#854F0B">
+          <div class="num" style="color:#854F0B">P2</div>
+          <div class="lbl" style="color:#854F0B">เร่งด่วน</div>
+        </div>
+        <div>
+          <div class="result-title">ระดับ 2 — เร่งด่วน</div>
+          <div class="result-sub">ควรพบแพทย์หรือพยาบาลโดยเร็ว</div>
+        </div>
+      </div>
+      <div class="symptoms-row">
+        <span class="sym-chip">คลื่นไส้/อาเจียน</span>
+        <span class="sym-chip">6–24 ชั่วโมง</span>
+        <span class="sym-chip">ความรุนแรง 7/10</span>
+        <span class="sym-chip">คงเดิม</span>
+      </div>
+    </div>
+
+    <div class="section-label">เลือกเส้นทางที่เหมาะสม</div>
+
+    <div class="route-list">
+      <div class="route-item selected" id="route-infirmary" onclick="selectRoute('infirmary',this)">
+        <div class="route-icon"><i class="ti ti-building-hospital" aria-hidden="true"></i></div>
+        <div style="flex:1">
+          <div class="badge-rec">แนะนำ</div>
+          <div class="route-name">ไปห้องพยาบาล</div>
+          <div class="route-desc">พบพยาบาลหรือแพทย์โดยตรง เหมาะกับอาการเร่งด่วน</div>
+        </div>
+        <div class="route-radio"><div class="radio-dot"></div></div>
+      </div>
+
+      <div class="route-item" id="route-tele" onclick="selectRoute('tele',this)">
+        <div class="route-icon"><i class="ti ti-device-mobile" aria-hidden="true"></i></div>
+        <div style="flex:1">
+          <div class="route-name">ปรึกษาแพทย์ออนไลน์</div>
+          <div class="route-desc">Telemedicine สะดวก ไม่ต้องเดินทาง</div>
+        </div>
+        <div class="route-radio"><div class="radio-dot"></div></div>
+      </div>
+
+      <div class="route-item" id="route-hospital" onclick="selectRoute('hospital',this)">
+        <div class="route-icon"><i class="ti ti-building-community" aria-hidden="true"></i></div>
+        <div style="flex:1">
+          <div class="route-name">โรงพยาบาล</div>
+          <div class="route-desc">OPD หรือห้องฉุกเฉิน ขึ้นอยู่กับความรุนแรง</div>
+        </div>
+        <div class="route-radio"><div class="radio-dot"></div></div>
+      </div>
+    </div>
+
+    <button class="confirm-btn" id="confirm-btn" onclick="confirmRoute()">
+      <i class="ti ti-check" aria-hidden="true"></i> ยืนยันเส้นทางนี้
+    </button>
+
+    <div class="divider"></div>
+    <div class="other-label">ตัวเลือกอื่น</div>
+    <div class="other-grid">
+      <div class="other-btn" onclick="selectOther('selfcare')">
+        <i class="ti ti-home" aria-hidden="true"></i> ดูแลตนเอง
+      </div>
+      <div class="other-btn" onclick="selectOther('followup')">
+        <i class="ti ti-calendar" aria-hidden="true"></i> นัดติดตาม
+      </div>
+    </div>
+  </div>
+
+  <div class="body confirmed-view" id="confirmed-view">
+    <div class="check-circle"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div class="confirmed-title">บันทึกเส้นทางเรียบร้อย</div>
+    <div class="confirmed-sub">ระบบได้บันทึกการเลือกของคุณแล้ว<br>ไปยังขั้นตอนถัดไปได้เลย</div>
+    <div class="confirmed-route" id="confirmed-route-display">
+      <i class="ti ti-building-hospital" style="font-size:20px;color:#06C755" aria-hidden="true"></i>
+      <div>
+        <div class="confirmed-route-name" id="confirmed-route-name">ไปห้องพยาบาล</div>
+        <div style="font-size:12px;color:#0F6E56">เส้นทางที่เลือก</div>
+      </div>
+    </div>
+    <button class="next-btn" onclick="goNext()">
+      ไปขั้นตอนถัดไป <i class="ti ti-arrow-right" aria-hidden="true"></i>
+    </button>
+  </div>
+</div>
+
+<script>
+var selected = 'infirmary';
+var routeNames = {
+  infirmary: {name:'ไปห้องพยาบาล', icon:'ti-building-hospital'},
+  tele: {name:'ปรึกษาแพทย์ออนไลน์', icon:'ti-device-mobile'},
+  hospital: {name:'โรงพยาบาล', icon:'ti-building-community'},
+  selfcare: {name:'ดูแลตนเอง', icon:'ti-home'},
+  followup: {name:'นัดติดตาม', icon:'ti-calendar'}
+};
+
+function selectRoute(key, el) {
+  document.querySelectorAll('.route-item').forEach(r => r.classList.remove('selected'));
+  el.classList.add('selected');
+  selected = key;
+}
+
+function selectOther(key) {
+  selected = key;
+  confirmRoute();
+}
+
+function confirmRoute() {
+  var r = routeNames[selected];
+  document.getElementById('confirmed-route-name').textContent = r.name;
+  document.querySelector('#confirmed-route-display i').className = 'ti ' + r.icon;
+  document.getElementById('main-view').style.display = 'none';
+  var cv = document.getElementById('confirmed-view');
+  cv.style.display = 'flex';
+}
+
+function goNext() {
+  var payload = {
+    p_label: 'P2',
+    selected_route: selected,
+    route_name: routeNames[selected].name
+  };
+  sendPrompt('ยืนยันเส้นทาง: ' + JSON.stringify(payload));
+}
+</script>
