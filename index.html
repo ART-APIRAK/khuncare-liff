@@ -261,9 +261,10 @@ const N8N_WEBHOOK  = 'https://artggame.app.n8n.cloud/webhook-test/liff-submit'; 
 
 // ══ STATE ═══════════════════════════════════════════
 const S = {
-  userId:    null,
-  sessionId: null,
-  mainSymptoms: [],       // จาก URL param (Gemini วิเคราะห์แล้ว)
+  userId:      null,
+  sessionId:   null,
+  userMessage: '',         // ข้อความที่ผู้ใช้พิมพ์ใน LINE chat (จาก URL param ?msg=)
+  mainSymptoms: [],        // จาก URL param
   redFlags:  [],
   redFlagTriggered: false,
   associated: [],
@@ -284,6 +285,7 @@ const S = {
     S.sessionId    = p.get('session_id') || S.userId;
     const raw      = p.get('symptoms')   || '';
     S.mainSymptoms = raw ? decodeURIComponent(raw).split(',').filter(Boolean) : [];
+    S.userMessage  = p.get('msg') ? decodeURIComponent(p.get('msg')) : '';
   } catch(e) {
     S.userId = 'dev'; S.sessionId = 'dev';
     console.warn('LIFF dev mode:', e.message);
@@ -376,15 +378,16 @@ function updateSev(el) {
 // ══ SUBMIT RED FLAG ══════════════════════════════════
 async function submitRedFlag() {
   const payload = {
-    user_id:    S.userId,
-    session_id: S.sessionId,
-    red_flag_triggered: true,
-    red_flags_detected: S.redFlags,
+    user_id:             S.userId,
+    session_id:          S.sessionId,
+    user_message:        S.userMessage,   // ← ข้อความที่พิมพ์ใน LINE chat
+    red_flag_triggered:  true,
+    red_flags_detected:  S.redFlags,
     associated_symptoms: null,
-    duration:    null,
-    severity:    null,
-    progression: null,
-    medical_history: null
+    duration:            null,
+    severity:            null,
+    progression:         null,
+    medical_history:     null
   };
   await send(payload);
 }
@@ -392,8 +395,9 @@ async function submitRedFlag() {
 // ══ SUBMIT NORMAL ════════════════════════════════════
 async function submitForm() {
   const payload = {
-    user_id:    S.userId,
-    session_id: S.sessionId,
+    user_id:             S.userId,
+    session_id:          S.sessionId,
+    user_message:        S.userMessage,   // ← ข้อความที่พิมพ์ใน LINE chat
     main_symptoms:       multiState.sx,
     red_flag_triggered:  false,
     red_flags_detected:  null,
